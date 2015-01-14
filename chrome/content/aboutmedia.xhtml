@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>about:media</title>
+    <meta name="viewport" content="width=device-width"/>
+  </head>
+  <body><h1>HTMLMediaElement debug data</h1><pre id='data'></pre></body>
+<script type="application/javascript">
+var mainWindow = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                       .getInterface(Components.interfaces.nsIWebNavigation)
+                       .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+                       .rootTreeItem
+                       .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                       .getInterface(Components.interfaces.nsIDOMWindow);
+var tabbrowser = mainWindow.gBrowser;
+var text = "";
+for(var i=0; i &lt; tabbrowser.browsers.length; ++i) {
+  var b = tabbrowser.getBrowserAtIndex(i);
+  var media = b.contentDocumentAsCPOW.getElementsByTagName('video');
+  if (media.length > 0) {
+    text += b.currentURI.spec + "\n";
+  }
+  for (var j=0; j &lt; media.length; ++j) {
+     text += "\t" + media[j].currentSrc + "\n";
+     text += "\t" + "currentTime: " + media[j].currentTime + "\n";
+     var ms = media[j].mozMediaSourceObject;
+     if (ms) {
+       for (var k=0; k &lt; ms.sourceBuffers.length; ++k) {
+         var sb = ms.sourceBuffers[k];
+         text += "\t\tSourceBuffer " + k + "\n";
+         for (var l=0; l &lt; sb.buffered.length; ++l) {
+           text += "\t\t\tstart=" + sb.buffered.start(l) + " end=" + sb.buffered.end(l) + "\n";
+         }
+       }
+       text += "\tInternal Data:\n";
+       var debugLines = ms.mozDebugReaderData.split("\n");
+       for(var m=0; m &lt; debugLines.length; ++m) {
+         text += "\t" + debugLines[m] + "\n";
+       }
+     }
+  }
+}
+document.getElementById('data').innerHTML = text;
+</script>
+
+</html>
